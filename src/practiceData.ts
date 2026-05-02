@@ -1,4 +1,4 @@
-export type PracticeMode = "mixed" | "chinese" | "english"
+export type PracticeMode = "mixed" | "chinese" | "english" | "custom"
 export type PracticeCategory =
   | "article"
   | "sentence"
@@ -7,6 +7,7 @@ export type PracticeCategory =
   | "number"
   | "classic"
   | "code"
+  | "custom"
 
 export type PracticeCategoryFilter = "all" | PracticeCategory
 
@@ -53,6 +54,12 @@ export const PRACTICE_MODES: PracticeModeMeta[] = [
     label: "综合练习",
     shortLabel: "混合",
     description: "中文、英文、数字符号和代码素材混合推进"
+  },
+  {
+    id: "custom",
+    label: "自定义练习",
+    shortLabel: "自定义",
+    description: "导入或粘贴自己的文本，按本地账号保存"
   }
 ]
 
@@ -104,6 +111,12 @@ export const PRACTICE_CATEGORIES: PracticeCategoryMeta[] = [
     label: "代码片段",
     shortLabel: "代码",
     description: "常见代码符号、括号和英文单词专项"
+  },
+  {
+    id: "custom",
+    label: "自定义文本",
+    shortLabel: "自定义",
+    description: "来自粘贴内容或本地文本文件的练习"
   }
 ]
 
@@ -114,7 +127,8 @@ const categoryShortLabels: Record<PracticeCategory, string> = {
   punctuation: "标点",
   number: "数字",
   classic: "经典",
-  code: "代码"
+  code: "代码",
+  custom: "自定义"
 }
 
 const chineseSubjects = [
@@ -581,12 +595,13 @@ const practicePrompts: PracticePrompt[] = buildPromptSeeds().map((prompt, index)
 
 export const PRACTICE_PROMPT_COUNT = practicePrompts.length
 
-const promptBanks: Record<Exclude<PracticeMode, "mixed">, PracticePrompt[]> = {
+const promptBanks: Record<Exclude<PracticeMode, "mixed" | "custom">, PracticePrompt[]> = {
   chinese: practicePrompts.filter((prompt) => prompt.mode === "chinese"),
   english: practicePrompts.filter((prompt) => prompt.mode === "english")
 }
 
 function getPromptPool(mode: PracticeMode) {
+  if (mode === "custom") return []
   return mode === "mixed" ? practicePrompts : promptBanks[mode]
 }
 

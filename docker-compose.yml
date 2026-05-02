@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: typing-practice-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: typing_practice
+      POSTGRES_USER: typing_user
+      POSTGRES_PASSWORD: typing_password
+    ports:
+      - "55432:5432"
+    volumes:
+      - typing-practice-postgres:/var/lib/postgresql/data
+
+volumes:
+  typing-practice-postgres:

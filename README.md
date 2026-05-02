@@ -9,13 +9,28 @@
 - 难度分级：入门、进阶、熟练、挑战
 - 实时统计 WPM、准确率、用时、错误数和进度
 - 支持中文输入法 composition，不会在拼音组词时吞输入
+- 账号密码注册/登录，账号、设置、成绩、自定义文本保存到 PostgreSQL
+- 支持粘贴自定义文本，也支持导入 txt / md / csv / json 纯文本文件
 
 ## 本地运行
 
 ```bash
 npm install
+npm run db:migrate
 npm run dev
 ```
+
+第一次运行前需要准备 PostgreSQL 和 `.env`：
+
+```bash
+copy .env.example .env
+docker compose up -d
+npm run db:migrate
+```
+
+Docker 里的 PostgreSQL 会映射到本机 `55432` 端口，避免和你机器上已有的 `5432` 冲突。如果你不用 Docker，也可以把 `.env` 里的 `DATABASE_URL` 改成自己的 PostgreSQL 连接串。
+
+前端默认跑在 `http://127.0.0.1:5173/`，后端 API 默认跑在 `http://127.0.0.1:3001/`，Vite 会把 `/api` 代理到后端。
 
 ## 构建
 
