@@ -28,7 +28,7 @@ docker compose up -d
 npm run db:migrate
 ```
 
-Docker 里的 PostgreSQL 会映射到本机 `55432` 端口，避免和你机器上已有的 `5432` 冲突。如果你不用 Docker，也可以把 `.env` 里的 `DATABASE_URL` 改成自己的 PostgreSQL 连接串。
+如果你直接使用本机 PostgreSQL，默认连接是 `127.0.0.1:5432`。如果你用 Docker，也可以把 `.env` 里的 `DATABASE_URL` 改成容器映射出来的连接串。
 
 前端默认跑在 `http://127.0.0.1:5173/`，后端 API 默认跑在 `http://127.0.0.1:3001/`，Vite 会把 `/api` 代理到后端。
 

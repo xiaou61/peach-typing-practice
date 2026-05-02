@@ -1,11 +1,12 @@
 import dotenv from 'dotenv'
 import pg from 'pg'
 
-dotenv.config({ override: true })
+const envResult = dotenv.config()
+const fileEnv = envResult.parsed ?? {}
 
 const { Pool } = pg
 
-const connectionString = process.env.DATABASE_URL
+const connectionString = fileEnv.DATABASE_URL ?? process.env.DATABASE_URL
 
 if (!connectionString) {
   throw new Error('DATABASE_URL is required. Copy .env.example to .env and set your PostgreSQL connection string.')

@@ -9,11 +9,12 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import { query, withTransaction } from './db.js'
 
-dotenv.config({ override: true })
+const envResult = dotenv.config()
+const fileEnv = envResult.parsed ?? {}
 
 const app = express()
-const port = Number(process.env.API_PORT ?? 3001)
-const sessionDays = Number(process.env.SESSION_DAYS ?? 7)
+const port = Number(process.env.API_PORT ?? fileEnv.API_PORT ?? 3001)
+const sessionDays = Number(process.env.SESSION_DAYS ?? fileEnv.SESSION_DAYS ?? 7)
 const sessionCookieName = 'typing_session'
 const maxCustomTextChars = 12000
 const passwordMinLength = 6
@@ -95,6 +96,22 @@ function clearSessionCookie(response) {
     secure: process.env.NODE_ENV === 'production',
     path: '/'
   })
+}
+
+function getFriendlyServerError(error) {
+  if (error?.code === 'ECONNREFUSED' && error?.port) {
+    return `当前连不上数据库服务（127.0.0.1:${error.port}）。请先启动 PostgreSQL 再试。`
+  }
+
+  if (error?.code === '3D000') {
+    return '数据库还没准备好，请先创建数据库并执行迁移。'
+  }
+
+  if (error?.code === '28P01') {
+    return '数据库账号或密码不对，请检查 .env 里的 DATABASE_URL。'
+  }
+
+  return '服务器暂时出错，请稍后再试。'
 }
 
 async function createSession(response, userId) {
@@ -589,7 +606,7 @@ if (process.env.NODE_ENV === 'production' && existsSync(distDir)) {
 app.use((error, _request, response, _next) => {
   console.error(error)
   if (response.headersSent) return
-  sendError(response, 500, 'internal_error', '服务器暂时出错，请稍后再试。')
+  sendError(response, 500, 'internal_error', getFriendlyServerError(error))
 })
 
 app.listen(port, '127.0.0.1', () => {

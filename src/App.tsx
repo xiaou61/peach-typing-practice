@@ -215,6 +215,10 @@ function profileToUserState(profile: UserProfile): UserState {
 }
 
 function getApiErrorMessage(error: unknown, fallback = '请求失败，请稍后再试。') {
+  if (error instanceof TypeError) {
+    return '现在连不上接口服务，请确认前后端和数据库都已经启动。'
+  }
+
   return error instanceof Error ? error.message : fallback
 }
 
@@ -353,6 +357,10 @@ function playSoftErrorTone(enabled: boolean) {
   gain.connect(audioContext.destination)
   oscillator.start()
   oscillator.stop(audioContext.currentTime + 0.07)
+}
+
+function trimToPromptLength(value: string, promptLength: number) {
+  return Array.from(value).slice(0, promptLength).join('')
 }
 
 function App() {
@@ -614,12 +622,13 @@ function App() {
   function handleTypingChange(value: string) {
     if (isFinished) return
 
-    const nextCharacters = Array.from(value)
+    const normalizedValue = trimToPromptLength(value, promptCharacters.length)
+    const nextCharacters = Array.from(normalizedValue)
     const previousCharacters = Array.from(typedTextRef.current)
     const previousValue = typedTextRef.current
     let firstChangedIndex = 0
 
-    if (value === previousValue) return
+    if (normalizedValue === previousValue) return
 
     while (
       firstChangedIndex < previousCharacters.length &&
@@ -629,7 +638,7 @@ function App() {
       firstChangedIndex += 1
     }
 
-    if (!startedAt && value.length > 0) {
+    if (!startedAt && normalizedValue.length > 0) {
       setStartedAt(Date.now())
       setNow(Date.now())
     }
@@ -651,17 +660,17 @@ function App() {
       }
     }
 
-    typedTextRef.current = value
-    setTypedText(value)
+    typedTextRef.current = normalizedValue
+    setTypedText(normalizedValue)
 
-    if (value === activePrompt.text) {
-      finishPractice(Date.now(), value)
+    if (nextCharacters.length >= promptCharacters.length) {
+      finishPractice(Date.now(), normalizedValue)
     }
   }
 
   function handleTypingInput(event: ChangeEvent<HTMLTextAreaElement>) {
     const nativeEvent = event.nativeEvent as InputEvent
-    const nextValue = event.target.value
+    const nextValue = trimToPromptLength(event.target.value, promptCharacters.length)
 
     setInputText(nextValue)
     if (isComposingRef.current || nativeEvent.isComposing) return
@@ -675,7 +684,7 @@ function App() {
 
   function handleCompositionEnd(event: CompositionEvent<HTMLTextAreaElement>) {
     isComposingRef.current = false
-    const nextValue = event.currentTarget.value
+    const nextValue = trimToPromptLength(event.currentTarget.value, promptCharacters.length)
     setInputText(nextValue)
     handleTypingChange(nextValue)
   }
